@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>詞語意思配對大賽（三人獨立尬賽版）</title>
+    <style>
+        /* 全域可愛童趣風格 */
+        body {
+            font-family: 'Comic Sans MS', 'Microsoft JhengHei', sans-serif;
+            background-color: #f7f5f0;
+            margin: 0;
+            padding: 15px;
+            user-select: none;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin: 10px 0 5px 0;
+            font-size: 2rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        /* 三直欄佈局 */
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 玩家專屬直欄 */
+        .player-column {
+            background-color: #ffffff;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            min-height: 72vh;
+            border-top: 10px solid #ccc;
+            transition: all 0.3s;
+        }
+
+        /* 三隊各別的主題色 */
+        #col-0 { border-top-color: #3498db; background-color: #f2f9ff; } /* 藍隊 */
+        #col-1 { border-top-color: #2ecc71; background-color: #f2fff6; } /* 綠隊 */
+        #col-2 { border-top-color: #e67e22; background-color: #fff9f2; } /* 橘隊 */
+
+        /* 標頭資訊 */
+        .player-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .player-name {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .score-board {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2c3e50;
+            background: white;
+            border-radius: 30px;
+            padding: 5px 15px;
+            display: inline-block;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .progress-text {
+            font-size: 0.95rem;
+            color: #7f8c8d;
+            margin-top: 8px;
+        }
+
+        /* 題目區（意思描述） */
+        .question-card {
+            background-color: #ffffff;
+            border: 3px dashed #bdc3c7;
+            border-radius: 15px;
+            padding: 20px 15px;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            color: #34495e;
+            text-align: center;
+            min-height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        #col-0 .question-card { border-color: #aed6f1; }
+        #col-1 .question-card { border-color: #abebc6; }
+        #col-2 .question-card { border-color: #f5cba7; }
+
+        /* 選項按鈕區 */
+        .options-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: auto; /* 推至底部 */
+        }
+
+        .opt-btn {
+            background-color: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+            box-shadow: 0 3px 0 #cbd5e1;
+        }
+
+        .opt-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 0 0 #cbd5e1;
+        }
+
+        /* 答題反饋效果 */
+        .opt-btn.correct {
+            background-color: #2ecc71 !important;
+            border-color: #27ae60 !important;
+            color: white !important;
+            box-shadow: 0 3px 0 #27ae60 !important;
+        }
+
+        .opt-btn.wrong {
+            background-color: #e74c3c !important;
+            border-color: #c0392b !important;
+            color: white !important;
+            box-shadow: 0 3px 0 #c0392b !important;
+            opacity: 0.7;
+        }
+
+        /* 結算畫面 */
+        .finish-msg {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #27ae60;
+            margin: auto 0;
+            line-height: 2;
+        }
+
+        /* 全域控制區 */
+        .control-bar {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .restart-btn {
+            background-color: #9b59b6;
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #8e44ad;
+        }
+
+        .restart-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #8e44ad;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🏆 核心詞語意思配對大賽 🏆</h1>
+    <div class="subtitle">三個直欄獨立進行！每次開局隨機抽選 15 題，看誰最快全對衝過終點！</div>
+
+    <div class="game-container">
+        <div class="player-column" id="col-0">
+            <div class="player-header">
+                <div class="player-name" style="color: #2980b9;">藍隊隊友 🟦</div>
+                <div class="score-board" id="score-0">0 分</div>
+                <div class="progress-text" id="progress-0">進度：0 / 15</div>
+            </div>
+            <div class="question-card" id="q-0">載入中...</div>
+            <div class="options-group" id="opts-0"></div>
+        </div>
+
+        <div class="player-column" id="col-1">
+            <div class="player-header">
+                <div class="player-name" style="color: #27ae60;">綠隊隊友 🟩</div>
+                <div class="score-board" id="score-1">0 分</div>
+                <div class="progress-text" id="progress-1">進度：0 / 15</div>
+            </div>
+            <div class="question-card" id="q-1">載入中...</div>
+            <div class="options-group" id="opts-1"></div>
+        </div>
+
+        <div class="player-column" id="col-2">
+            <div class="player-header">
+                <div class="player-name" style="color: #d35400;">橘隊隊友 🟧</div>
+                <div class="score-board" id="score-2">0 分</div>
+                <div class="progress-text" id="progress-2">進度：0 / 15</div>
+            </div>
+            <div class="question-card" id="q-2">載入中...</div>
+            <div class="options-group" id="opts-2"></div>
+        </div>
+    </div>
+
+    <div class="control-bar">
+        <button class="restart-btn" onclick="initGame()">重新洗牌（抽取全新 15 題）</button>
+    </div>
+
+    <script>
+        // 47組核心詞語資料庫（專為小學生優化的白話釋義）
+        const gameData = [
+            { word: "擠滿", meaning: "形容人或東西非常多，把空間都填滿了。" },
+            { word: "爭先恐後", meaning: "爭著向前，唯恐落後。" },
+            { word: "預留", meaning: "事先保留下來，留作以後使用。" },
+            { word: "應有盡有", meaning: "應該有的全都有了，形容物品非常齊全。" },
+            { word: "新穎", meaning: "新奇而別緻，跟一般的很不一樣。" },
+            { word: "沮喪", meaning: "灰心失望，心情非常低落。" },
+            { word: "歡天喜地", meaning: "形容非常高興、快樂無比的樣子。" },
+            { word: "光顧", meaning: "商家稱客人來到店裡買東西。" },
+            { word: "皺紋", meaning: "皮膚或物體表面收縮產生的褶紋。" },
+            { word: "蜂擁而至", meaning: "像蜜蜂一樣，成群地快速擁過來。" },
+            { word: "琳瑯滿目", meaning: "形容美好的物品非常多，讓人看不過來。" },
+            { word: "粗俗", meaning: "粗魯而沒有禮貌，不夠文雅。" },
+            { word: "輕浮", meaning: "說話做事不莊重、不認真、太隨便。" },
+            { word: "潑辣", meaning: "形容人說話做事兇悍、有衝勁。" },
+            { word: "德性", meaning: "人的道德品質和性格行為。" },
+            { word: "啟示", meaning: "啟發提示，讓人明白某個道理。" },
+            { word: "軟弱", meaning: "不堅強，遇到困難容易害怕或動搖。" },
+            { word: "耐旱", meaning: "能夠忍受乾旱，不需要太多水分就能生存。" },
+            { word: "暗地", meaning: "私底下，偷偷地不公開進行。" },
+            { word: "安分守己", meaning: "規規矩矩，守本分，不惹事生非。" },
+            { word: "堅實", meaning: "堅固結實，非常牢固。" },
+            { word: "憑藉", meaning: "依靠、利用某種力量或條件來達成目的。" },
+            { word: "誘惑", meaning: "吸引人去做不該做的事，或指極大的吸引力。" },
+            { word: "玲瓏", meaning: "形容東西精巧、細緻、小巧可愛。" },
+            { word: "惆悵", meaning: "心情傷感、失意、有些不快樂。" },
+            { word: "綿延", meaning: "連續不斷地向遠方延長。" },
+            { word: "追憶", meaning: "回想、回憶過去發生的事情。" },
+            { word: "統統", meaning: "全部、所有的東西都包含在內。" },
+            { word: "容納", meaning: "可以裝得下、接受得下一定的數量。" },
+            { word: "唯一", meaning: "只有這一個，沒有其他的了。" },
+            { word: "鄭重其事", meaning: "形容說話做事非常嚴肅、認真對待。" },
+            { word: "凝聚", meaning: "聚集、結合在一起，形成一股力量。" },
+            { word: "無窮無盡", meaning: "沒有窮盡，形容非常多，永遠用不完。" },
+            { word: "式樣", meaning: "物體的形狀、格式或款式。" },
+            { word: "跨越", meaning: "越過地區、時期或障礙等界限。" },
+            { word: "狀態", meaning: "人或事物表現出來的形態、狀況。" },
+            { word: "邏輯", meaning: "思維的規律、條理和道理。" },
+            { word: "翹楚", meaning: "比喻優秀卓越、最傑出的人才。" },
+            { word: "節制", meaning: "控制、約束自己的行為或欲望。" },
+            { word: "轉換", meaning: "改變、更換原本的方向、方式或狀態。" },
+            { word: "思維", meaning: "在腦海中進行思考、分析和推理的過程。" },
+            { word: "成就", meaning: "努力做成功的事業，或取得的好成績。" },
+            { word: "孕育", meaning: "懷胎生育，也比喻在新事物中醞釀出生。" },
+            { word: "揚威", meaning: "表現出威風，名聲大振，讓大家都知道。" },
+            { word: "從事", meaning: "做某種工作或參與某項特定的活動。" },
+            { word: "出類拔萃", meaning: "形容才能、品德遠遠超出一般人，非常優秀。" },
+            { word: "促進", meaning: "推動、使事物發展得更快更好。" }
+        ];
+
+        const GAME_LENGTH = 15; // 每局設定做 15 題
+        let players = [
+            { score: 0, current: 0, list: [], isLock: false },
+            { score: 0, current: 0, list: [], isLock: false },
+            { score: 0, current: 0, list: [], isLock: false }
+        ];
+
+        // 洗牌函數
+        function shuffle(arr) {
+            return arr.sort(() => Math.random() - 0.5);
+        }
+
+        // 初始化遊戲
+        function initGame() {
+            players.forEach((p, idx) => {
+                p.score = 0;
+                p.current = 0;
+                p.isLock = false;
+                
+                // 從 47 題中隨機洗牌並抽出 15 題作為本局題目
+                let shuffledFullPool = shuffle([...gameData]);
+                p.list = shuffledFullPool.slice(0, GAME_LENGTH);
+                
+                document.getElementById(`score-${idx}`).innerText = "0 分";
+                document.getElementById(`progress-${idx}`).innerText = `進度：1 / ${GAME_LENGTH}`;
+                
+                renderNext(idx);
+            });
+        }
+
+        // 渲染該玩家的下一題
+        function renderNext(pIdx) {
+            const p = players[pIdx];
+            const qCard = document.getElementById(`q-${pIdx}`);
+            const optsGroup = document.getElementById(`opts-${pIdx}`);
+            
+            optsGroup.innerHTML = "";
+            p.isLock = false;
+
+            // 檢查是否做完設定的題數
+            if (p.current >= p.list.length) {
+                document.getElementById(`progress-${pIdx}`).innerText = "🎉 挑戰完成！";
+                qCard.innerHTML = "✨ 抵達終點！ ✨";
+                optsGroup.innerHTML = `<div class="finish-msg">🏁 順利完賽！<br>最終得分：<br><span style="font-size:2.5rem; color:#e67e22;">${p.score}</span> 分</div>`;
+                return;
+            }
+
+            // 更新進度文字
+            document.getElementById(`progress-${pIdx}`).innerText = `進度：${p.current + 1} / ${GAME_LENGTH}`;
+
+            // 取得正確答案
+            const correctItem = p.list[p.current];
+            qCard.innerText = `「${correctItem.meaning}」`;
+
+            // 隨機抽取另外 2 個做干擾項（從全體 47 題中找非正確者）
+            let wrongItems = gameData.filter(item => item.word !== correctItem.word);
+            shuffle(wrongItems);
+            let options = [correctItem, wrongItems[0], wrongItems[1]];
+            shuffle(options); // 洗牌三個選項
+
+            // 生成選項按鈕
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "opt-btn";
+                btn.innerText = opt.word; // 按鈕僅顯示精簡詞語字樣
+                btn.onclick = () => checkAnswer(pIdx, btn, opt.word, correctItem.word);
+                optsGroup.appendChild(btn);
+            });
+        }
+
+        // 檢查答題結果
+        function checkAnswer(pIdx, clickedBtn, selectedWord, correctWord) {
+            const p = players[pIdx];
+            if (p.isLock) return; 
+
+            if (selectedWord === correctWord) {
+                // 答對了！
+                p.isLock = true;
+                p.score += 10;
+                clickedBtn.classList.add('correct');
+                document.getElementById(`score-${pIdx}`).innerText = `${p.score} 分`;
+
+                // 稍微延遲 0.6 秒讓小朋友看到綠色成功效果，隨即進下一題
+                setTimeout(() => {
+                    p.current++;
+                    renderNext(pIdx);
+                }, 600);
+            } else {
+                // 答錯了！
+                clickedBtn.classList.add('wrong');
+                clickedBtn.disabled = true; // 鎖定該錯誤按鈕
+                p.score = Math.max(0, p.score - 2); // 答錯小扣 2 分，最低 0 分
+                document.getElementById(`score-${pIdx}`).innerText = `${p.score} 分`;
+            }
+        }
+
+        // 網頁載入時自動啟動
+        window.onload = initGame;
+    </script>
+</body>
+</html>
